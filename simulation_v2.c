@@ -26,6 +26,12 @@
 // Stała grawitacyjna
 #define GRAVITY 0.5f
 
+//Stala zwalniajaca
+#define DAMPING 0.99f
+
+// Licznik kolizji
+int collisionsCount = 0;
+
 // Struktura cząsteczki
 typedef struct {
     float x, y;       // Pozycja
@@ -100,6 +106,8 @@ void handleCollision(Particle *a, Particle *b) {
 
     limitSpeed(a);
     limitSpeed(b);
+
+    collisionsCount++;
 }
 
 int main() {
@@ -158,8 +166,8 @@ int main() {
         for (int i = 0; i < NUM_PARTICLES; i++) {
             particles[i].dy += GRAVITY;
 
-            particles[i].x += particles[i].dx;
-            particles[i].y += particles[i].dy;
+            particles[i].x += particles[i].dx * DAMPING;
+            particles[i].y += particles[i].dy * DAMPING;
 
             float distX = particles[i].x - CIRCLE_CENTER_X;
             float distY = particles[i].y - CIRCLE_CENTER_Y;
