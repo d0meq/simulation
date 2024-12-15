@@ -212,6 +212,7 @@ int main() {
     }
 
     SDL_DestroyRenderer(renderer);
+    printf("Liczba kolizji: %d\n", collisionsCount);
     SDL_DestroyWindow(window);
     SDL_Quit();
 
