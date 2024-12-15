@@ -10,7 +10,7 @@
 #define WINDOW_HEIGHT 800
 
 // Liczba cząsteczek
-#define NUM_PARTICLES 10
+#define NUM_PARTICLES 20
 
 // Domyślny promień cząsteczki
 #define PARTICLE_RADIUS 10
@@ -108,6 +108,11 @@ void handleCollision(Particle *a, Particle *b) {
     a->dy = b->dy * DAMPING;
     b->dx = tempDx * DAMPING;
     b->dy = tempDy * DAMPING;
+
+    // a->dx = b->dx;
+    // a->dy = b->dy;
+    // b->dx = tempDx;
+    // b->dy = tempDy;
 
     changeColor(a);
     changeColor(b);
@@ -217,7 +222,7 @@ int main() {
     Particle particles[NUM_PARTICLES];
     for (int i = 0; i < NUM_PARTICLES; i++) {
         particles[i].x = rand() % WINDOW_WIDTH;
-        particles[i].y = rand() % WINDOW_HEIGHT;
+        particles[i].y = WINDOW_HEIGHT / 2;
         particles[i].dx = (rand() % 2 == 0 ? 1 : -1) * (1 + rand() % 2);
         particles[i].dy = (rand() % 2 == 0 ? 1 : -1) * (1 + rand() % 2);
         particles[i].r = rand() % 200;
@@ -247,6 +252,7 @@ int main() {
             }
             if (particles[i].y - particles[i].radius < 0 || particles[i].y + particles[i].radius > WINDOW_HEIGHT) {
                 particles[i].dy = -particles[i].dy;
+                particles[i].y = WINDOW_HEIGHT - particles[i].radius; // Upewnij się, że cząsteczka nie przekracza dolnej krawędzi
             }
 
             limitSpeed(&particles[i]);
@@ -262,7 +268,7 @@ int main() {
 
         // Check if any particle has a radius of 15 or more
         for (int i = 0; i < NUM_PARTICLES; i++) {
-            if (particles[i].radius >= 15.0f) {
+            if (particles[i].radius >= 50.0f) {
                 running = 0;
                 break;
             }
