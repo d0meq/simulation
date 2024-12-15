@@ -142,8 +142,8 @@ int main() {
 
     Particle particles[NUM_PARTICLES];
     for (int i = 0; i < NUM_PARTICLES; i++) {
-        particles[i].x = CIRCLE_CENTER_X + (rand() % (CIRCLE_RADIUS - PARTICLE_RADIUS));
-        particles[i].y = CIRCLE_CENTER_Y + (rand() % (CIRCLE_RADIUS - PARTICLE_RADIUS));
+        particles[i].x = CIRCLE_CENTER_X ;
+        particles[i].y = CIRCLE_CENTER_Y - (CIRCLE_RADIUS + 2 * PARTICLE_RADIUS);
         particles[i].dx = (rand() % 2 == 0 ? 1 : -1) * (1 + rand() % 2);
         particles[i].dy = (rand() % 2 == 0 ? 1 : -1) * (1 + rand() % 2);
         particles[i].r = rand() % 200;
@@ -199,7 +199,7 @@ int main() {
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
         SDL_RenderClear(renderer);
 
-        SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
         drawCircle(renderer, CIRCLE_CENTER_X, CIRCLE_CENTER_Y, CIRCLE_RADIUS);
 
         for (int i = 0; i < NUM_PARTICLES; i++) {
