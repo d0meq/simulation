@@ -40,10 +40,14 @@ typedef struct {
     float radius;     // Dynamiczny promień
 } Particle;
 
-//Funkcja do pokazywania predkosci czasteczki
+// Dane do wykresu
+#define MAX_POINTS 1000
+float avgSpeeds[MAX_POINTS];
+int pointCount = 0;
 
-void showSpeed(Particle *p) {
-    printf("Predkosc czasteczki: %f\n", sqrtf(p->dx * p->dx + p->dy * p->dy));
+// Funkcja do pokazywania prędkości cząsteczki
+float getSpeed(Particle *p) {
+    return sqrtf(p->dx * p->dx + p->dy * p->dy);
 }
 
 // Funkcja do rysowania okręgu
@@ -106,7 +110,6 @@ void handleCollision(Particle *a, Particle *b) {
     changeColor(a);
     changeColor(b);
 
-    // Zwiększ promienie cząsteczek
     a->radius += 0.1f;
     b->radius += 0.1f;
 
@@ -114,9 +117,24 @@ void handleCollision(Particle *a, Particle *b) {
     limitSpeed(b);
 
     collisionsCount++;
+}
 
-    showSpeed(a);
-    showSpeed(b);
+// Funkcja do rysowania wykresu
+void drawGraph(SDL_Renderer *renderer, float *data, int count) {
+    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+
+    int graphWidth = WINDOW_WIDTH;
+    int graphHeight = WINDOW_HEIGHT;
+
+    for (int i = 1; i < count; i++) {
+        int x1 = (i - 1) * (graphWidth / count);
+        int y1 = graphHeight - (int)(data[i - 1] * 10);
+
+        int x2 = i * (graphWidth / count);
+        int y2 = graphHeight - (int)(data[i] * 10);
+
+        SDL_RenderDrawLine(renderer, x1, y1, x2, y2);
+    }
 }
 
 int main() {
@@ -151,7 +169,7 @@ int main() {
 
     Particle particles[NUM_PARTICLES];
     for (int i = 0; i < NUM_PARTICLES; i++) {
-        particles[i].x = CIRCLE_CENTER_X ;
+        particles[i].x = CIRCLE_CENTER_X;
         particles[i].y = CIRCLE_CENTER_Y - (CIRCLE_RADIUS + 2 * PARTICLE_RADIUS);
         particles[i].dx = (rand() % 2 == 0 ? 1 : -1) * (1 + rand() % 2);
         particles[i].dy = (rand() % 2 == 0 ? 1 : -1) * (1 + rand() % 2);
@@ -160,7 +178,6 @@ int main() {
         particles[i].b = rand() % 200;
         particles[i].radius = PARTICLE_RADIUS;
         limitSpeed(&particles[i]);
-        // showSpeed(&particles[i]);
     }
 
     int running = 1;
@@ -206,6 +223,23 @@ int main() {
             }
         }
 
+        for (int i = 0; i < NUM_PARTICLES; i++){
+            if(particles[i].radius > 100.0f) {
+                running = 0;
+                break;
+            }
+        }
+
+        float avgSpeed = 0;
+        for (int i = 0; i < NUM_PARTICLES; i++) {
+            avgSpeed += getSpeed(&particles[i]);
+        }
+        avgSpeed /= NUM_PARTICLES;
+
+        if (pointCount < MAX_POINTS) {
+            avgSpeeds[pointCount++] = avgSpeed;
+        }
+
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
         SDL_RenderClear(renderer);
 
@@ -222,8 +256,38 @@ int main() {
     }
 
     SDL_DestroyRenderer(renderer);
-    printf("Liczba kolizji: %d\n", collisionsCount);
     SDL_DestroyWindow(window);
+
+    SDL_Window *graphWindow = SDL_CreateWindow(
+        "Wykres średniej prędkości",
+        SDL_WINDOWPOS_CENTERED,
+        SDL_WINDOWPOS_CENTERED,
+        WINDOW_WIDTH,
+        WINDOW_HEIGHT,
+        SDL_WINDOW_SHOWN
+    );
+
+    SDL_Renderer *graphRenderer = SDL_CreateRenderer(graphWindow, -1, SDL_RENDERER_ACCELERATED);
+
+    int graphRunning = 1;
+    while (graphRunning) {
+        while (SDL_PollEvent(&event)) {
+            if (event.type == SDL_QUIT) {
+                graphRunning = 0;
+            }
+        }
+
+        SDL_SetRenderDrawColor(graphRenderer, 0, 0, 0, 255);
+        SDL_RenderClear(graphRenderer);
+
+        drawGraph(graphRenderer, avgSpeeds, pointCount);
+
+        SDL_RenderPresent(graphRenderer);
+    }
+
+    SDL_DestroyRenderer(graphRenderer);
+    SDL_DestroyWindow(graphWindow);
+
     SDL_Quit();
 
     return 0;
