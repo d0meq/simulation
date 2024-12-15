@@ -10,7 +10,7 @@
 #define WINDOW_HEIGHT 800
 
 // Liczba cząsteczek
-#define NUM_PARTICLES 20
+#define NUM_PARTICLES 100
 
 // Domyślny promień cząsteczki
 #define PARTICLE_RADIUS 10
@@ -117,8 +117,8 @@ void handleCollision(Particle *a, Particle *b) {
     changeColor(a);
     changeColor(b);
 
-    a->radius += 0.1f;
-    b->radius += 0.1f;
+    // a->radius += 0.1f;
+    // b->radius += 0.1f;
 
     limitSpeed(a);
     limitSpeed(b);
