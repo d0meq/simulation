@@ -1,28 +1,22 @@
-// KOMENDA DO KOMPILACJI PLIKU: gcc -o simulation simulation.c -lSDL2 -lm
-
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
 #include <math.h>
 #include <stdlib.h>
 #include <time.h>
+#include <stdio.h>
 
 // Rozmiar okna
 #define WINDOW_WIDTH 1000
 #define WINDOW_HEIGHT 800
 
 // Liczba cząsteczek
-#define NUM_PARTICLES 40
+#define NUM_PARTICLES 10
 
 // Domyślny promień cząsteczki
 #define PARTICLE_RADIUS 10
 
 // Maksymalna prędkość cząsteczki
 #define MAX_SPEED 20.0f
-
-// Parametry okręgu ograniczającego
-#define CIRCLE_CENTER_X (WINDOW_WIDTH / 2)
-#define CIRCLE_CENTER_Y (WINDOW_HEIGHT / 2)
-#define CIRCLE_RADIUS 350
 
 // Stała grawitacyjna
 #define GRAVITY 0.5f
@@ -52,7 +46,6 @@ float getSpeed(Particle *p) {
 }
 
 // Funkcja do pokazywana predkosci
-
 void showSpeed(Particle *p) {
     printf("Particle speed: %.2f\n", getSpeed(p));
 }
@@ -72,15 +65,17 @@ void drawCircle(SDL_Renderer *renderer, int x, int y, int radius) {
 
 // Funkcja do wykrywania kolizji między dwiema cząsteczkami
 int checkCollision(Particle *a, Particle *b) {
-    float dist = sqrtf((a->x - b->x) * (a->x - b->x) + (a->y - b->y) * (a->y - b->y));
-    return dist < (a->radius + b->radius);
+    float dx = b->x - a->x;
+    float dy = b->y - a->y;
+    float distance = sqrtf(dx * dx + dy * dy);
+    return distance < (a->radius + b->radius);
 }
 
-// Funkcja do zmiany koloru cząsteczki na losowy
+// Funkcja do zmiany koloru cząsteczki
 void changeColor(Particle *p) {
-    p->r = rand() % 200;
-    p->g = rand() % 200;
-    p->b = rand() % 200;
+    p->r = rand() % 256;
+    p->g = rand() % 256;
+    p->b = rand() % 256;
 }
 
 // Funkcja ograniczająca prędkość
@@ -190,7 +185,8 @@ int main() {
     }
 
     if (TTF_Init() == -1) {
-        printf("Blad inicjalizacji SDL_ttf: %s\n", TTF_GetError());
+        printf("Błąd inicjalizacji SDL_ttf: %s\n", TTF_GetError());
+        SDL_Quit();
         return 1;
     }
 
@@ -220,8 +216,8 @@ int main() {
 
     Particle particles[NUM_PARTICLES];
     for (int i = 0; i < NUM_PARTICLES; i++) {
-        particles[i].x = CIRCLE_CENTER_X;
-        particles[i].y = CIRCLE_CENTER_Y - (CIRCLE_RADIUS + 2 * PARTICLE_RADIUS);
+        particles[i].x = rand() % WINDOW_WIDTH;
+        particles[i].y = rand() % WINDOW_HEIGHT;
         particles[i].dx = (rand() % 2 == 0 ? 1 : -1) * (1 + rand() % 2);
         particles[i].dy = (rand() % 2 == 0 ? 1 : -1) * (1 + rand() % 2);
         particles[i].r = rand() % 200;
@@ -233,7 +229,6 @@ int main() {
 
     int running = 1;
     SDL_Event event;
-
     while (running) {
         while (SDL_PollEvent(&event)) {
             if (event.type == SDL_QUIT) {
@@ -247,23 +242,14 @@ int main() {
             particles[i].x += particles[i].dx;
             particles[i].y += particles[i].dy;
 
-            float distX = particles[i].x - CIRCLE_CENTER_X;
-            float distY = particles[i].y - CIRCLE_CENTER_Y;
-            float distance = sqrtf(distX * distX + distY * distY);
-
-            if (distance + particles[i].radius > CIRCLE_RADIUS) {
-                float overlap = (distance + particles[i].radius) - CIRCLE_RADIUS;
-                float unitX = distX / distance;
-                float unitY = distY / distance;
-                particles[i].x -= unitX * overlap;
-                particles[i].y -= unitY * overlap;
-
-                float dotProduct = particles[i].dx * unitX + particles[i].dy * unitY;
-                particles[i].dx -= 2 * dotProduct * unitX;
-                particles[i].dy -= 2 * dotProduct * unitY;
-
-                limitSpeed(&particles[i]);
+            if (particles[i].x - particles[i].radius < 0 || particles[i].x + particles[i].radius > WINDOW_WIDTH) {
+                particles[i].dx = -particles[i].dx;
             }
+            if (particles[i].y - particles[i].radius < 0 || particles[i].y + particles[i].radius > WINDOW_HEIGHT) {
+                particles[i].dy = -particles[i].dy;
+            }
+
+            limitSpeed(&particles[i]);
         }
 
         for (int i = 0; i < NUM_PARTICLES; i++) {
@@ -274,8 +260,9 @@ int main() {
             }
         }
 
-        for (int i = 0; i < NUM_PARTICLES; i++){
-            if(particles[i].radius > 50.0f) {
+        // Check if any particle has a radius of 15 or more
+        for (int i = 0; i < NUM_PARTICLES; i++) {
+            if (particles[i].radius >= 15.0f) {
                 running = 0;
                 break;
             }
@@ -294,9 +281,6 @@ int main() {
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
         SDL_RenderClear(renderer);
 
-        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-        drawCircle(renderer, CIRCLE_CENTER_X, CIRCLE_CENTER_Y, CIRCLE_RADIUS);
-
         for (int i = 0; i < NUM_PARTICLES; i++) {
             SDL_SetRenderDrawColor(renderer, particles[i].r, particles[i].g, particles[i].b, 255);
             drawCircle(renderer, (int)particles[i].x, (int)particles[i].y, (int)particles[i].radius);
@@ -310,14 +294,13 @@ int main() {
     SDL_DestroyWindow(window);
 
     SDL_Window *graphWindow = SDL_CreateWindow(
-        "Wykres średniej prędkości",
+        "Wykres prędkości średnich",
         SDL_WINDOWPOS_CENTERED,
         SDL_WINDOWPOS_CENTERED,
         WINDOW_WIDTH,
         WINDOW_HEIGHT,
         SDL_WINDOW_SHOWN
     );
-
     SDL_Renderer *graphRenderer = SDL_CreateRenderer(graphWindow, -1, SDL_RENDERER_ACCELERATED);
 
     int graphRunning = 1;
@@ -339,6 +322,9 @@ int main() {
     SDL_DestroyRenderer(graphRenderer);
     SDL_DestroyWindow(graphWindow);
 
+    SDL_DestroyRenderer(renderer);
+    SDL_DestroyWindow(window);
+    TTF_Quit();
     SDL_Quit();
 
     return 0;
