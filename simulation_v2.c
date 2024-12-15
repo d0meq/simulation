@@ -10,10 +10,10 @@
 #define WINDOW_HEIGHT 800
 
 // Liczba cząsteczek
-#define NUM_PARTICLES 10
+#define NUM_PARTICLES 20
 
 // Domyślny promień cząsteczki
-#define PARTICLE_RADIUS 20
+#define PARTICLE_RADIUS 10
 
 // Maksymalna prędkość cząsteczki
 #define MAX_SPEED 20.0f
@@ -39,6 +39,12 @@ typedef struct {
     Uint8 r, g, b;    // Kolor (RGB)
     float radius;     // Dynamiczny promień
 } Particle;
+
+//Funkcja do pokazywania predkosci czasteczki
+
+void showSpeed(Particle *p) {
+    printf("Predkosc czasteczki: %f\n", sqrtf(p->dx * p->dx + p->dy * p->dy));
+}
 
 // Funkcja do rysowania okręgu
 void drawCircle(SDL_Renderer *renderer, int x, int y, int radius) {
@@ -92,10 +98,10 @@ void handleCollision(Particle *a, Particle *b) {
 
     float tempDx = a->dx;
     float tempDy = a->dy;
-    a->dx = b->dx;
-    a->dy = b->dy;
-    b->dx = tempDx;
-    b->dy = tempDy;
+    a->dx = b->dx * DAMPING;
+    a->dy = b->dy * DAMPING;
+    b->dx = tempDx * DAMPING;
+    b->dy = tempDy * DAMPING;
 
     changeColor(a);
     changeColor(b);
@@ -108,6 +114,9 @@ void handleCollision(Particle *a, Particle *b) {
     limitSpeed(b);
 
     collisionsCount++;
+
+    showSpeed(a);
+    showSpeed(b);
 }
 
 int main() {
@@ -151,6 +160,7 @@ int main() {
         particles[i].b = rand() % 200;
         particles[i].radius = PARTICLE_RADIUS;
         limitSpeed(&particles[i]);
+        // showSpeed(&particles[i]);
     }
 
     int running = 1;
@@ -166,8 +176,8 @@ int main() {
         for (int i = 0; i < NUM_PARTICLES; i++) {
             particles[i].dy += GRAVITY;
 
-            particles[i].x += particles[i].dx * DAMPING;
-            particles[i].y += particles[i].dy * DAMPING;
+            particles[i].x += particles[i].dx;
+            particles[i].y += particles[i].dy;
 
             float distX = particles[i].x - CIRCLE_CENTER_X;
             float distY = particles[i].y - CIRCLE_CENTER_Y;
