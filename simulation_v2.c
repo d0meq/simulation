@@ -11,7 +11,7 @@
 #define WINDOW_HEIGHT 800
 
 // Liczba cząsteczek
-#define NUM_PARTICLES 20
+#define NUM_PARTICLES 40
 
 // Domyślny promień cząsteczki
 #define PARTICLE_RADIUS 10
@@ -275,7 +275,7 @@ int main() {
         }
 
         for (int i = 0; i < NUM_PARTICLES; i++){
-            if(particles[i].radius > 100.0f) {
+            if(particles[i].radius > 50.0f) {
                 running = 0;
                 break;
             }
