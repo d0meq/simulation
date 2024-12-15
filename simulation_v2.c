@@ -1,6 +1,7 @@
 // KOMENDA DO KOMPILACJI PLIKU: gcc -o simulation simulation.c -lSDL2 -lm
 
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_ttf.h>
 #include <math.h>
 #include <stdlib.h>
 #include <time.h>
@@ -48,6 +49,12 @@ int pointCount = 0;
 // Funkcja do pokazywania prędkości cząsteczki
 float getSpeed(Particle *p) {
     return sqrtf(p->dx * p->dx + p->dy * p->dy);
+}
+
+// Funkcja do pokazywana predkosci
+
+void showSpeed(Particle *p) {
+    printf("Particle speed: %.2f\n", getSpeed(p));
 }
 
 // Funkcja do rysowania okręgu
@@ -117,6 +124,8 @@ void handleCollision(Particle *a, Particle *b) {
     limitSpeed(b);
 
     collisionsCount++;
+    showSpeed(a);
+    showSpeed(b);
 }
 
 // Funkcja do rysowania wykresu
@@ -125,21 +134,63 @@ void drawGraph(SDL_Renderer *renderer, float *data, int count) {
 
     int graphWidth = WINDOW_WIDTH;
     int graphHeight = WINDOW_HEIGHT;
+    int margin = 50; // Margines dla osi i etykiet
 
+    // Rysowanie osi X i Y
+    SDL_RenderDrawLine(renderer, margin, graphHeight - margin, graphWidth - margin, graphHeight - margin); // Oś X
+    SDL_RenderDrawLine(renderer, margin, margin, margin, graphHeight - margin); // Oś Y
+
+    // Rysowanie siatki pomocniczej
+    SDL_SetRenderDrawColor(renderer, 100, 100, 100, 255);
+    for (int i = margin; i < graphWidth - margin; i += 50) {
+        SDL_RenderDrawLine(renderer, i, margin, i, graphHeight - margin);
+    }
+    for (int i = margin; i < graphHeight - margin; i += 50) {
+        SDL_RenderDrawLine(renderer, margin, i, graphWidth - margin, i);
+    }
+
+    // Rysowanie linii wykresu
+    SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255); // Zmiana koloru linii wykresu na zielony
     for (int i = 1; i < count; i++) {
-        int x1 = (i - 1) * (graphWidth / count);
-        int y1 = graphHeight - (int)(data[i - 1] * 10);
+        int x1 = margin + (i - 1) * (graphWidth - 2 * margin) / count;
+        int y1 = graphHeight - margin - (int)(data[i - 1] * 10);
 
-        int x2 = i * (graphWidth / count);
-        int y2 = graphHeight - (int)(data[i] * 10);
+        int x2 = margin + i * (graphWidth - 2 * margin) / count;
+        int y2 = graphHeight - margin - (int)(data[i] * 10);
 
         SDL_RenderDrawLine(renderer, x1, y1, x2, y2);
+    }
+
+    // Dodanie etykiet do osi
+    TTF_Font *font = TTF_OpenFont("/usr/share/fonts/fonts/ttf/JetBrainsMono-Bold.ttf", 16);
+    if (font) {
+        SDL_Color color = {255, 255, 255, 255};
+        SDL_Surface *surface = TTF_RenderText_Solid(font, "TIME", color);
+        SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, surface);
+        SDL_Rect dstrect = {graphWidth / 2, graphHeight - margin + 10, surface->w, surface->h};
+        SDL_RenderCopy(renderer, texture, NULL, &dstrect);
+        SDL_FreeSurface(surface);
+        SDL_DestroyTexture(texture);
+
+        surface = TTF_RenderText_Solid(font, "SPEED", color);
+        texture = SDL_CreateTextureFromSurface(renderer, surface);
+        dstrect = (SDL_Rect){10, margin / 2, surface->w, surface->h};
+        SDL_RenderCopy(renderer, texture, NULL, &dstrect);
+        SDL_FreeSurface(surface);
+        SDL_DestroyTexture(texture);
+
+        TTF_CloseFont(font);
     }
 }
 
 int main() {
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
         printf("Błąd inicjalizacji SDL: %s\n", SDL_GetError());
+        return 1;
+    }
+
+    if (TTF_Init() == -1) {
+        printf("Blad inicjalizacji SDL_ttf: %s\n", TTF_GetError());
         return 1;
     }
 
