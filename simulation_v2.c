@@ -122,9 +122,9 @@ void handleCollision(Particle *a, Particle *b) {
     limitSpeed(a);
     limitSpeed(b);
 
+    showSpeed(a);
+    showSpeed(b);
     collisionsCount++;
-    // showSpeed(a);
-    // showSpeed(b);
 }
 
 // Funkcja do rysowania wykresu
@@ -221,7 +221,7 @@ int main() {
     Particle particles[NUM_PARTICLES];
     for (int i = 0; i < NUM_PARTICLES; i++) {
         particles[i].x = rand() % WINDOW_WIDTH;
-        particles[i].y = WINDOW_HEIGHT / 2;
+        particles[i].y = rand() % WINDOW_HEIGHT;
         particles[i].dx = (rand() % 2 == 0 ? 1 : -1) * (1 + rand() % 2);
         particles[i].dy = (rand() % 2 == 0 ? 1 : -1) * (1 + rand() % 2);
         particles[i].r = rand() % 200;
