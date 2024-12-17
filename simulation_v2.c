@@ -19,7 +19,7 @@
 #define MAX_SPEED 20.0f
 
 // Stała grawitacyjna
-#define GRAVITY -0.01f
+#define GRAVITY 0.9f
 
 //Stala zwalniajaca
 #define DAMPING 0.99f
