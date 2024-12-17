@@ -22,7 +22,7 @@
 #define GRAVITY 0.5f
 
 //Stala zwalniajaca
-#define DAMPING 0.99f
+#define DAMPING 0.5f
 
 // Licznik kolizji
 int collisionsCount = 0;
