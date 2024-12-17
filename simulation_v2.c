@@ -19,14 +19,13 @@
 #define MAX_SPEED 20.0f
 
 // Stała grawitacyjna
-#define GRAVITY 0.5f
+#define GRAVITY -0.01f
 
 //Stala zwalniajaca
-#define DAMPING 0.5f
+#define DAMPING 0.99f
 
 // Licznik kolizji
 int collisionsCount = 0;
-
 // Struktura cząsteczki
 typedef struct {
     float x, y;       // Pozycja
@@ -124,8 +123,8 @@ void handleCollision(Particle *a, Particle *b) {
     limitSpeed(b);
 
     collisionsCount++;
-    showSpeed(a);
-    showSpeed(b);
+    // showSpeed(a);
+    // showSpeed(b);
 }
 
 // Funkcja do rysowania wykresu
