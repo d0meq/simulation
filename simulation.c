@@ -132,8 +132,8 @@ int main() {
     // Tworzenie cząsteczek
     Particle particles[NUM_PARTICLES];
     for (int i = 0; i < NUM_PARTICLES; i++) {
-        particles[i].x = WINDOW_WIDTH / 2;//rand() % (WINDOW_WIDTH - 2 * PARTICLE_RADIUS) + PARTICLE_RADIUS
-        particles[i].y = WINDOW_HEIGHT / 2;//(WINDOW_HEIGHT - 2 * PARTICLE_RADIUS) + PARTICLE_RADIUS
+        particles[i].x = rand() % (WINDOW_WIDTH - 2 * PARTICLE_RADIUS) + PARTICLE_RADIUS;
+        particles[i].y = rand() % (WINDOW_HEIGHT - 2 * PARTICLE_RADIUS) + PARTICLE_RADIUS;
         particles[i].dx = (rand() % 2 == 0 ? 1 : -1) * (1 + rand() % 2);
         particles[i].dy = (rand() % 2 == 0 ? 1 : -1) * (1 + rand() % 2);
         particles[i].r = rand() % 200;
