@@ -90,3 +90,171 @@ void changeColor(Particle *p) {
 Funkcja **changeColor()** odpowiada za zmiane koloru cząsteczek:
 
 1. Ustawia losowy kolor dla cząsteczki w zakresie od 0 do 199
+
+
+```
+void limitSpeed(Particle *p) {
+    float speed = sqrtf(p->dx * p->dx + p->dy * p->dy);
+    if (speed > MAX_SPEED) {
+        p->dx = (p->dx / speed) * MAX_SPEED;
+        p->dy = (p->dy / speed) * MAX_SPEED;
+    }
+}
+```
+
+Funkcja **limitSpeed()**:
+1. Ogranicza prędkość cząsteczki, aby nie przekraczała **MAX_SPEED**
+
+```
+void handleCollision(Particle *a, Particle *b) {
+    float dx = b->x - a->x;
+    float dy = b->y - a->y;
+    float distance = sqrtf(dx * dx + dy * dy);
+
+    float overlap = (2 * PARTICLE_RADIUS - distance) / 2.0f;
+    float unitDx = dx / distance;
+    float unitDy = dy / distance;
+
+    a->x -= unitDx * overlap;
+    a->y -= unitDy * overlap;
+    b->x += unitDx * overlap;
+    b->y += unitDy * overlap;
+
+    float tempDx = a->dx;
+    float tempDy = a->dy;
+    a->dx = b->dx;
+    a->dy = b->dy;
+    b->dx = tempDx;
+    b->dy = tempDy;
+
+    changeColor(a);
+    changeColor(b);
+
+    limitSpeed(a);
+    limitSpeed(b);
+}
+```
+
+Funkcja **handleCollision()** obsługuje zderzenia:
+1. Oblicza różnice pozycji i dystans między cząsteczkami
+2. Zmienia kierunek cząsteczki na zewnątrz aby się rozdzieliły
+3. Zamienia ich prędkości symulując odbicie
+4. Zmienia ich kolor 
+5. Ogranicza prędkość aby symulacja była jak najbardziej realna
+
+## FUNKCJA MAIN
+
+```
+if (SDL_Init(SDL_INIT_VIDEO) < 0) { ... }
+SDL_Window *window = SDL_CreateWindow(...);
+SDL_Renderer *renderer = SDL_CreateRenderer(...);
+```
+
+Inicjalizacja SDL:
+1. Inicjalizuje biblioteke SDL i tworzy okno o wymiarach 1000x800 pikseli oraz redner (do rysowania)
+
+```
+    Particle particles[NUM_PARTICLES];
+    for (int i = 0; i < NUM_PARTICLES; i++) {
+        particles[i].x = rand() % (WINDOW_WIDTH - 2 * PARTICLE_RADIUS) + PARTICLE_RADIUS;
+        particles[i].y = rand() % (WINDOW_HEIGHT - 2 * PARTICLE_RADIUS) + PARTICLE_RADIUS;
+        particles[i].dx = (rand() % 2 == 0 ? 1 : -1) * (1 + rand() % 2);
+        particles[i].dy = (rand() % 2 == 0 ? 1 : -1) * (1 + rand() % 2);
+        particles[i].r = rand() % 200;
+        particles[i].g = rand() % 200;
+        particles[i].b = rand() % 200;
+        limitSpeed(&particles[i]);
+    }
+```
+
+Tworzenie cząsteczek:
+1. Generuje podaną liczbę (**NUM_PARTICLES**) cząsteczek
+2. Przypisuje im wartości takie jak:
+   - Pozycja na ekranie (x, y)
+   - Prędkość początkowa (dx, dy)
+   - Losowy kolor
+   - Ograniczenie prędkości w celu zachowania rzeczywistości symulacji
+
+```
+    while (running) {
+        // Obsługa zdarzeń
+        while (SDL_PollEvent(&event)) {
+            if (event.type == SDL_QUIT) {
+                running = 0;
+            }
+        }
+
+        // Aktualizacja pozycji cząsteczek
+        for (int i = 0; i < NUM_PARTICLES; i++) {
+            particles[i].x += particles[i].dx;
+            particles[i].y += particles[i].dy;
+
+            // Odbicie od lewej i prawej ściany
+            if (particles[i].x - PARTICLE_RADIUS < 0) {
+                particles[i].x = PARTICLE_RADIUS; // Korekta pozycji
+                particles[i].dx = -particles[i].dx;
+            } else if (particles[i].x + PARTICLE_RADIUS > WINDOW_WIDTH) {
+                particles[i].x = WINDOW_WIDTH - PARTICLE_RADIUS; // Korekta pozycji
+                particles[i].dx = -particles[i].dx;
+            }
+
+            // Odbicie od górnej i dolnej ściany
+            if (particles[i].y - PARTICLE_RADIUS < 0) {
+                particles[i].y = PARTICLE_RADIUS; // Korekta pozycji
+                particles[i].dy = -particles[i].dy;
+            } else if (particles[i].y + PARTICLE_RADIUS > WINDOW_HEIGHT) {
+                particles[i].y = WINDOW_HEIGHT - PARTICLE_RADIUS; // Korekta pozycji
+                particles[i].dy = -particles[i].dy;
+            }
+        }
+
+
+        // Obsługa kolizji między cząsteczkami
+        for (int i = 0; i < NUM_PARTICLES; i++) {
+            for (int j = i + 1; j < NUM_PARTICLES; j++) {
+                if (checkCollision(&particles[i], &particles[j])) {
+                    handleCollision(&particles[i], &particles[j]);
+                }
+            }
+        }
+
+        // Wyczyść ekran
+        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255); // Czarny
+        SDL_RenderClear(renderer);
+
+        // Rysowanie cząsteczek
+        for (int i = 0; i < NUM_PARTICLES; i++) {
+            SDL_SetRenderDrawColor(renderer, particles[i].r, particles[i].g, particles[i].b, 255);
+            drawCircle(renderer, (int)particles[i].x, (int)particles[i].y, PARTICLE_RADIUS);
+        }
+
+        // Wyświetlenie nowej klatki
+        SDL_RenderPresent(renderer);
+
+        // Opóźnienie
+        SDL_Delay(16); // Około 60 FPS
+    }
+```
+
+Główna pętla programu:
+1. Obsługa zdarzeń:
+   - Sprawdza, czy użytkowanik chce zamknąć okno
+2. Aktualizacja pozycji:
+   - Przesuwa cząsteczki na podstawie ich prędkości
+   - Odbija cząsteczki od krawędzi okna
+3. Obsługa kolizji:
+   -  Sprawdza, czy cząsteki zderzyły się i obsługuje kolizjie
+4. Rysowanie:
+   - Czyści ekran, rysuje każdą cząsteczke jako kółko i wyświetla wynik
+5. Opóźnienie:
+   - **SDL_Delay(16)** sprawia, że program działa z prędkością około 60 klatek na sekunde
+
+## CZYSZCZENIE ZASOBÓW
+
+```
+SDL_DestroyRenderer(renderer);
+SDL_DestroyWindow(window);
+SDL_Quit();
+```
+
+Usuwa zasoby SDL przed zakończeniem programu (co zapobiega niepotrzebnym błędom)
