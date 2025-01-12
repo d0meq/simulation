@@ -69,7 +69,7 @@ void handleCollision(Particle *a, Particle *b) {
 
     // Oblicz przesunięcie w celu separacji
     float overlap = (2 * PARTICLE_RADIUS - distance) / 2.0f;
-    float unitDx = dx / distance;
+    float unitDx = dx / distance;//Zastosowanie normalizacji w celu uzyskania kierunku cząsteczki bez zmiany proporcji
     float unitDy = dy / distance;
 
     // Przesuń cząsteczki na zewnątrz
