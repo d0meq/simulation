@@ -1,3 +1,5 @@
-simulation
-simulation_v2
-simulation_v3
+# Ignore all files
+*
+
+# Except .c files
+!*.c
